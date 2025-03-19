@@ -19,14 +19,13 @@ function lm_add_admin_menu() {
         6
     );
 
-    // Submenu for Locations (custom post type).
     add_submenu_page(
-        'location_map',
-        'Locations',
-        'Locations',
-        'manage_options',
-        'edit.php?post_type=lm_location'
-    );
+        'location_map', // Parent slug (your main menu slug)
+        'Add New Location', // Page title
+        'Add New Location', // Menu title
+        'manage_options',   // Capability required
+        'post-new.php?post_type=lm_location' // URL to add a new location
+    );    
 }
 add_action( 'admin_menu', 'lm_add_admin_menu' );
 

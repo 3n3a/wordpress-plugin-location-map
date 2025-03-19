@@ -43,6 +43,10 @@ function lm_render_meta_box( $post ) {
     <p>
         <strong>Select Location on Map:</strong>
     </p>
+    <div style="margin-bottom:10px;">
+        <input type="text" id="lm-address-search" placeholder="Enter address to search" style="width:70%;" />
+        <button type="button" id="lm-search-btn">Search</button>
+    </div>
     <div id="lm-map-picker" style="width: 100%; height: 300px;"></div>
     <?php
 }
