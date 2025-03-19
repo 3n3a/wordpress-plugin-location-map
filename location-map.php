@@ -101,6 +101,28 @@ function lm_render_block( $attributes ) {
     $latitude    = get_post_meta( $location->ID, '_lm_latitude', true );
     $description = get_post_meta( $location->ID, '_lm_description', true );
     $displayGmapsUrl = get_post_meta( $location->ID, '_lm_display_gmaps_url', true );
+    // Retrieve the saved tile theme.
+    $tile_theme = get_post_meta( $location->ID, '_lm_tile_theme', true );
+    if ( empty( $tile_theme ) ) {
+        $tile_theme = 'osm_standard';
+    }
+    $customTileUrl = get_post_meta( $location->ID, '_lm_tile_url', true );
+    // Determine the tile layer URL.
+    switch ( $tile_theme ) {
+        case 'osm_hot':
+            $tile_url = 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
+            break;
+        case 'lima_labs':
+            $tile_url = 'https://cdn.lima-labs.com/{z}/{x}/{y}.png?api=demo';
+            break;
+        case 'custom':
+            $tile_url = esc_html( $customTileUrl );
+            break;
+        case 'osm_standard':
+        default:
+            $tile_url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            break;
+    }
     
     // Generate a unique map container ID.
     $map_id = 'lm-map-' . $location->ID . '-' . uniqid();
@@ -108,7 +130,7 @@ function lm_render_block( $attributes ) {
     $gmapsUrl = 'https://maps.google.com/?q=' . $latitude . ',' . $longitude;
     
     ob_start(); ?>
-    <div class="lm-location-map" data-longitude="<?php echo esc_attr( $longitude ); ?>" data-latitude="<?php echo esc_attr( $latitude ); ?>">
+    <div class="lm-location-map" data-longitude="<?php echo esc_attr( $longitude ); ?>" data-latitude="<?php echo esc_attr( $latitude ); ?>" data-tileurl="<?php echo esc_attr( $tile_url ); ?>">
         <div id="<?php echo esc_attr( $map_id ); ?>" class="lm-map-container" style="width: 100%; height: 400px;"></div>
         <?php 
             if ($displayGmapsUrl == 1) {
@@ -124,8 +146,9 @@ function lm_render_block( $attributes ) {
         if(mapEl && typeof L !== 'undefined'){
             var lng = mapEl.parentNode.getAttribute('data-longitude');
             var lat = mapEl.parentNode.getAttribute('data-latitude');
+            var tileUrl = mapEl.parentNode.getAttribute('data-tileurl');
             var map = L.map('<?php echo esc_js( $map_id ); ?>').setView([lat, lng], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            L.tileLayer(tileUrl, {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
             L.marker([lat, lng]).addTo(map);

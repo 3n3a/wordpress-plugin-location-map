@@ -1,27 +1,73 @@
 (function ($) {
-  let initialLat = 37.7749;
-  let initialLng = -122.4194;
-
   $(document).ready(async function () {
-    // Get Location based on User IP
-    const data = await $.getJSON(
-      "http://ip-api.com/json?fields=status,lat,lon"
-    );
-    if (data["status"] === "success") {
-      initialLat = data["lat"] || initialLat;
-      initialLng = data["lon"] || initialLng;
+    let initialLat = 37.7749;
+    let initialLng = -122.4194;
+
+    // Get Location based on User IP, if no lat long saved already
+    if ($("#lm_latitude").val().length === 0 && $("#lm_longitude").val().length === 0) {
+      const data = await $.getJSON(
+        "http://ip-api.com/json?fields=status,lat,lon"
+      );
+      if (data["status"] === "success") {
+        initialLat = data["lat"] || initialLat;
+        initialLng = data["lon"] || initialLng;
+      }
     }
 
     // Use current inputs or default values
-    var initialLat = $("#lm_latitude").val() || initialLat;
-    var initialLng = $("#lm_longitude").val() || initialLng;
+    initialLat = $("#lm_latitude").val() || initialLat;
+    initialLng = $("#lm_longitude").val() || initialLng;
+
+    // Get the current tile theme from the select field.
+    var tileTheme = $('#lm_tile_theme').val() || 'osm_standard';
+
+    // Helper to choose the tile URL based on the theme.
+    function getTileUrl(theme) {
+        switch(theme) {
+            case 'osm_hot':
+                return 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
+            case 'lima_labs':
+                return 'https://cdn.lima-labs.com/{z}/{x}/{y}.png?api=demo';
+            case 'custom':
+                return $("#lm_tile_url").val();
+            case 'osm_standard':
+            default:
+                return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        }
+    }
 
     // Initialize the Leaflet map.
     var map = L.map("lm-map-picker").setView([initialLat, initialLng], 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap contributors",
+    var tileLayer = L.tileLayer(getTileUrl(tileTheme), {
+        attribution: '© OpenStreetMap contributors'
     }).addTo(map);
     var marker = L.marker([initialLat, initialLng]).addTo(map);
+
+    // When the tile theme select changes, update the tile layer.
+    $("#lm_tile_theme").on("change", function () {
+      tileTheme = $('#lm_tile_url').val();
+
+      // show custom if selected
+      if (tileTheme === "custom") {
+        $("#custom_tile_url").show()
+      } else {
+        $("#custom_tile_url").hide()
+      }
+
+      map.removeLayer(tileLayer);
+      tileLayer = L.tileLayer(getTileUrl(tileTheme), {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+    });
+
+    $("#lm_tile_url").on("change", function () {
+      const customTileUrl = $(this).val();
+
+      map.removeLayer(tileLayer);
+      tileLayer = L.tileLayer(customTileUrl, {
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+    });
 
     // Helper function to update marker position and input fields.
     function updateMarker(lat, lng) {
@@ -31,19 +77,19 @@
     }
 
     function getAddressFormatted(item) {
-        let addressSearchInput = item.display_name;
-        if (item['address']) {
-            const address = item['address'];
+      let addressSearchInput = item.display_name;
+      if (item["address"]) {
+        const address = item["address"];
 
-            const road = address['road'];
-            const house_number = address['house_number'];
-            const postcode = address['postcode'];
-            const city = address['city'] || address['town'];
-            if (road && house_number && postcode && city) {
-                addressSearchInput = `${road} ${house_number}, ${postcode} ${city}`
-            }
+        const road = address["road"];
+        const house_number = address["house_number"];
+        const postcode = address["postcode"];
+        const city = address["city"] || address["town"];
+        if (road && house_number && postcode && city) {
+          addressSearchInput = `${road} ${house_number}, ${postcode} ${city}`;
         }
-        return addressSearchInput;
+      }
+      return addressSearchInput;
     }
 
     // Update marker and inputs on map click.

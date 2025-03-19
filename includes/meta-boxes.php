@@ -28,6 +28,11 @@ function lm_render_meta_box( $post ) {
     $latitude    = get_post_meta( $post->ID, '_lm_latitude', true );
     $description = get_post_meta( $post->ID, '_lm_description', true );
     $displayGmapsUrl = get_post_meta( $post->ID, '_lm_display_gmaps_url', true );
+    $tile_theme = get_post_meta( $post->ID, '_lm_tile_theme', true );
+    if ( empty( $tile_theme ) ) {
+        $tile_theme = 'osm_standard';
+    }
+    $customTileUrl = get_post_meta( $post->ID, '_lm_tile_url', true );
     ?>
     <p>
         <label for="lm_longitude">Longitude:</label>
@@ -44,6 +49,19 @@ function lm_render_meta_box( $post ) {
     <p>
         <label for="lm_display_gmaps_url">Display Description as Google Maps Url</label>
         <input type="checkbox" id="lm_display_gmaps_url" name="lm_display_gmaps_url" <?php checked( $displayGmapsUrl, '1' ); ?> />
+    </p>
+    <p>
+        <label for="lm_tile_theme">Tile Theme:</label>
+        <select id="lm_tile_theme" name="lm_tile_theme">
+            <option value="osm_standard" <?php selected( $tile_theme, 'osm_standard' ); ?>>OpenStreetMap Standard</option>
+            <option value="osm_hot" <?php selected( $tile_theme, 'osm_hot' ); ?>>OpenStreetMap HOT</option>
+            <option value="lima_labs" <?php selected( $tile_theme, 'lima_labs' ); ?>>Lima Labs</option>
+            <option value="custom" <?php selected( $tile_theme, 'custom' ); ?>>Custom</option>
+        </select>
+    </p>
+    <p id="custom_tile_url" <?php if ($tile_theme != 'custom') echo 'hidden'; ?>>
+        <label for="lm_tile_url">Custom Tile Url:</label>
+        <input type="text" id="lm_tile_url" name="lm_tile_url" value="<?php echo esc_attr( $customTileUrl ); ?>" />
     </p>
     <p>
         <strong>Select Location on Map:</strong>
@@ -83,6 +101,11 @@ function lm_save_meta_box_data( $post_id ) {
     } else {
         update_post_meta( $post_id, '_lm_display_gmaps_url', 0 );
     }
-    
+    if ( isset( $_POST['lm_tile_theme'] ) ) {
+        update_post_meta( $post_id, '_lm_tile_theme', sanitize_text_field( $_POST['lm_tile_theme'] ) );
+    }
+    if ( isset( $_POST['lm_tile_url'] ) ) {
+        update_post_meta( $post_id, '_lm_tile_url', sanitize_text_field( $_POST['lm_tile_url'] ) );
+    }
 }
 add_action( 'save_post', 'lm_save_meta_box_data' );
