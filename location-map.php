@@ -100,14 +100,23 @@ function lm_render_block( $attributes ) {
     $longitude   = get_post_meta( $location->ID, '_lm_longitude', true );
     $latitude    = get_post_meta( $location->ID, '_lm_latitude', true );
     $description = get_post_meta( $location->ID, '_lm_description', true );
+    $displayGmapsUrl = get_post_meta( $location->ID, '_lm_display_gmaps_url', true );
     
     // Generate a unique map container ID.
     $map_id = 'lm-map-' . $location->ID . '-' . uniqid();
+
+    $gmapsUrl = 'https://maps.google.com/?q=' . $latitude . ',' . $longitude;
     
     ob_start(); ?>
     <div class="lm-location-map" data-longitude="<?php echo esc_attr( $longitude ); ?>" data-latitude="<?php echo esc_attr( $latitude ); ?>">
         <div id="<?php echo esc_attr( $map_id ); ?>" class="lm-map-container" style="width: 100%; height: 400px;"></div>
-        <p><?php echo esc_html( $description ); ?></p>
+        <?php 
+            if ($displayGmapsUrl == 1) {
+                echo '<a href="' . esc_html( $gmapsUrl ) . '" target="_blank">' . esc_html( $description ) . '</a>';
+            } else {
+                echo '<p>' . esc_html( $description ) . '</p>';
+            }
+        ?>
     </div>
     <script type="text/javascript">
     window.addEventListener('load', function(){

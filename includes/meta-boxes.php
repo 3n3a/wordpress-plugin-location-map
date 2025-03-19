@@ -27,6 +27,7 @@ function lm_render_meta_box( $post ) {
     $longitude   = get_post_meta( $post->ID, '_lm_longitude', true );
     $latitude    = get_post_meta( $post->ID, '_lm_latitude', true );
     $description = get_post_meta( $post->ID, '_lm_description', true );
+    $displayGmapsUrl = get_post_meta( $post->ID, '_lm_display_gmaps_url', true );
     ?>
     <p>
         <label for="lm_longitude">Longitude:</label>
@@ -39,6 +40,10 @@ function lm_render_meta_box( $post ) {
     <p>
         <label for="lm_description">Description:</label>
         <textarea id="lm_description" name="lm_description"><?php echo esc_textarea( $description ); ?></textarea>
+    </p>
+    <p>
+        <label for="lm_display_gmaps_url">Display Description as Google Maps Url</label>
+        <input type="checkbox" id="lm_display_gmaps_url" name="lm_display_gmaps_url" <?php checked( $displayGmapsUrl, '1' ); ?> />
     </p>
     <p>
         <strong>Select Location on Map:</strong>
@@ -73,5 +78,11 @@ function lm_save_meta_box_data( $post_id ) {
     if ( isset( $_POST['lm_description'] ) ) {
         update_post_meta( $post_id, '_lm_description', sanitize_textarea_field( $_POST['lm_description'] ) );
     }
+    if ( isset( $_POST['lm_display_gmaps_url'] ) ) {
+        update_post_meta( $post_id, '_lm_display_gmaps_url', 1 );
+    } else {
+        update_post_meta( $post_id, '_lm_display_gmaps_url', 0 );
+    }
+    
 }
 add_action( 'save_post', 'lm_save_meta_box_data' );
